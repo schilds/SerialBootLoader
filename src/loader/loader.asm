@@ -18,10 +18,10 @@ get_char:
 	mov  dx,UART_BASEADDR+5
 	gc_wait:
 		in   al,dx
-		xchg al,ah
-		and  ax,9f00h
+		and  ax,0x009f
 		jz   gc_wait
 
+	xchg al,ah
 	test ah,UART_CHAR_RECV
 	jz   gc_nochar						; if no char, must be error
 	mov  dx,UART_BASEADDR
@@ -46,7 +46,7 @@ parse_char:
 	cmp  al,CF_CID						; return CONTROL_FLAG if CF_CID
 	je   parse_cf_cid
 	parse_null:							; return null
-		and  ah,0feh						
+		and  ah,0xfe						
 		jmp  parse_end
 	parse_pf_cid:
 		mov  al,PACKET_FLAG
@@ -65,8 +65,8 @@ main:
 	mov  es,ax
 	mov  ss,ax    
 
-	mov  bp,7c00h						; set up stack
-	mov  sp,7c00h					
+	mov  bp,0x7c00						; set up stack
+	mov  sp,0x7c00					
 
 	sti									; enable interrupts
 										; initialise the serial port
