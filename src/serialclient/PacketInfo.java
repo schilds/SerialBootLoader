@@ -33,12 +33,12 @@ public class PacketInfo {
 
 		int i = 0;
 		buffer[i] = PACKET_FLAG;
-		i += addToBuffer(buffer, ++i, data_length1);
-		i += addToBuffer(buffer, ++i, data_length2);
+		i = addNext(buffer, i, data_length1);
+		i = addNext(buffer, i, data_length2);
 		for(byte b : bytes){
-			i += addToBuffer(buffer, ++i, b);
+			i = addNext(buffer, i, b);
 		}
-		i += addToBuffer(buffer, ++i, checksum);
+		i = addNext(buffer, i, checksum);
 		buffer[++i] = PACKET_FLAG;
 
 		return buffer;
@@ -48,18 +48,18 @@ public class PacketInfo {
 		buffer_length += ((b == PACKET_FLAG || b == CONTROL_FLAG) ? 2 : 1);
 	}
 
-	private static int addToBuffer(byte[] buffer, int offset, byte b){
+	private static int addNext(byte[] buffer, int offset, byte b){
 		if(b == PACKET_FLAG){
-			buffer[offset] = CONTROL_FLAG;
+			buffer[++offset] = CONTROL_FLAG;
 			buffer[++offset] = PF_CID;
-			return 2;
 		}
 		else if(b == CONTROL_FLAG){
-			buffer[offset] = CONTROL_FLAG;
+			buffer[++offset] = CONTROL_FLAG;
 			buffer[++offset] = CF_CID;
-			return 2;
 		}
-		buffer[offset] = b;
-		return 1;
+		else{
+			buffer[++offset] = b;
+		}
+		return offset;
 	}
 }
