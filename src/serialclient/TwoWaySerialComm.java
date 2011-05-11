@@ -12,10 +12,6 @@ import java.io.StringWriter;
 
 public class TwoWaySerialComm
 {
-	public static byte PACKET_FLAG = (byte) 0x7e;
-	public static byte CONTROL_FLAG = (byte) 0x7d;
-	public static byte CF_PID = (byte) 0x5e;
-	public static byte CF_CID = (byte) 0x5d;
 
     public TwoWaySerialComm()
     {
@@ -105,7 +101,7 @@ public class TwoWaySerialComm
 					if(c != '\n')
 						buffer.write(c);
                     else{
-                    	this.out.write(packageBytes(hexStringToBytes(buffer.toString().trim())));
+                    	this.out.write(new PacketInfo(hexStringToBytes(buffer.toString().trim())).packageBytes());
                     	buffer = new StringWriter();
                     }
                 }
@@ -129,42 +125,6 @@ public class TwoWaySerialComm
             e.printStackTrace();
         }
     }
-
-    private static byte[] packageBytes(byte[] bytes){
-		PacketInfo info = packetInfo(bytes);
-		byte[] buffer = new byte[info.length];
-
-		int i = 0;
-		buffer[i] = PACKET_FLAG;
-		buffer[++i] = (byte) bytes.length;
-		buffer[++i] = (byte) (bytes.length >> 8);
-		for(byte b : bytes){
-			if(b == PACKET_FLAG){
-				buffer[++i] = CONTROL_FLAG;
-				buffer[++i] = CF_PID;
-			}
-			else if(b == CONTROL_FLAG){
-				buffer[++i] = CONTROL_FLAG;
-				buffer[++i] = CF_CID;
-			}
-			else{
-				buffer[++i] = b;
-			}
-		}
-		buffer[++i] = (byte) info.checksum;
-		buffer[++i] = PACKET_FLAG;
-		return buffer;
-	}
-
-	private static PacketInfo packetInfo(byte[] bytes){
-		PacketInfo info = new PacketInfo();
-		for(byte b : bytes){
-			info.length += ((b == PACKET_FLAG || b == CONTROL_FLAG) ? 2 : 1);
-			info.checksum += b;
-			info.checksum %= 256;
-		}
-		return info;
-	}
 
     private static byte[] hexStringToBytes(String s) {
 		if(s.length() % 2 != 0)
