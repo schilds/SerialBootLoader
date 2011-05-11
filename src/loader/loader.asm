@@ -1,8 +1,8 @@
-%define UART_BASEADDR  0x3f8
-%define UART_BAUDRATE  0x1
-%define UART_LCRVAL    0x1b
-%define UART_DLAB      0x80
-%define UART_CHAR_RECV 0x01
+%define UART_BASEADDR  0x3f8			; port
+%define UART_BAUDRATE  0x1				; 115200 (port+0,1)
+%define UART_LCRVAL    0x1b				; 8e1 (port+3)
+%define UART_DLAB      0x80				; divisor latch access bit (port+3)
+%define UART_CHAR_RECV 0x01				; character received bit (port+5)
 
 %define PACKET_FLAG    0x7e
 %define CONTROL_FLAG   0x7d
