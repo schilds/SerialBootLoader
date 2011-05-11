@@ -1,3 +1,6 @@
+package serialclient;
+
+
 public class PacketInfo {
 	public int length, checksum;
 
