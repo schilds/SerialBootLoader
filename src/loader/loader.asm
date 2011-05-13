@@ -1,6 +1,3 @@
-%define code_size      (buffer - find_packet)
-%define code_reloc     (0x7c00 - code_size)
-
 %define UART_BASEADDR  0x3f8			; port
 %define UART_BAUDRATE  0x1				; 115200 (port+0,1)
 %define UART_LCRVAL    0x1b				; 8e1 (port+3)
@@ -9,130 +6,78 @@
 %define UART_CHAR_RECV 0x01				; character received bit
 %define UART_RECV_ERR  0x9e             ; receive line status error bits
 
-
 %define PACKET_FLAG    0x7e
 %define CONTROL_FLAG   0x7d
 %define PF_CID         0x5e
 %define CF_CID         0x5d
 
 [bits 16]
-[org 0x7c00]								; boot sector
+[org 0x7a00]								; position when relocated (512 bytes before 7c00)
 
 start:
-	jmp 0x0000:main
+    xor  ax,ax								; segment registers to 0
+    mov  es,ax
+    mov  ds,ax
 
-find_packet:
-	call get_char							; expecting packet flag
+    cli										; disable interrupts
+    mov  ss,ax								; set up stack
+    mov  sp,0x7a00
+    sti										; enable interrupts
 
-	test_packet_flag:
-		test ah,UART_RECV_ERR
-		jnz  find_packet
+    cld										; copy forward
+    mov  cx,512/2							; relocate code
+    mov  si,0x7c00
+    mov  di,0x7a00
+    rep  movsw
 
-	cmp  al,PACKET_FLAG
-	jne  find_packet
-
-	call parse_char							; read length (2 bytes, little endian)
-	test ah,UART_CHAR_RECV
-	jz   test_packet_flag
-	mov  cl,al
-
-	call parse_char
-	test ah,UART_CHAR_RECV
-	jz   test_packet_flag
-	mov  ch,al
-
-	xor  dx,dx								; checksum (sum over buffer % 256)
-	mov  di,buffer							; offset of buffer
-
-	recv_loop:								; read bytes
-		call parse_char
-		test ah,UART_CHAR_RECV
-		jz   test_packet_flag
-
-		stosb
-
-		and  ah,0							; accumulate checksum
-		add  dx,ax
-		and  dh,0
-
-		loop recv_loop
-
-	call parse_char							; read and compare checksum
-	test ah,UART_CHAR_RECV
-	jz   test_packet_flag
-	cmp  al,dl
-	jne  find_packet
-
-	call get_char							; expecting packet flag
-	test ah,UART_RECV_ERR
-	jnz  find_packet
-	cmp  al,PACKET_FLAG
-	jne  find_packet
-
-	call buffer								; run code in buffer
-	jmp  find_packet						; look for more instructions
+    jmp  0x0000:main						; jump to relocated code
 
 get_char:
 	push dx
 	mov  dx,UART_BASEADDR+5
-	gc_wait:
+	.gc_wait:
 		in   al,dx
 		and  ax,UART_RECV_STAT
-		jz   gc_wait
+		jz   .gc_wait
 
 	xchg al,ah
 	test ah,UART_CHAR_RECV
-	jz   gc_nochar							; if no char, must be error
+	jz   .gc_nochar							; if no char, must be error
 	mov  dx,UART_BASEADDR
 	in   al,dx
-	gc_nochar:
+	.gc_nochar:
 		pop  dx
 		ret
 
 parse_char:
 	call get_char
 	test ah,UART_RECV_ERR					; return line status bits if error
-	jnz  parse_err
+	jnz  .parse_err
 	cmp  al,PACKET_FLAG						; return null if packet flag
-	je   parse_null
+	je   .parse_null
 	cmp  al,CONTROL_FLAG					; return char if not control flag
-	jne  parse_end
+	jne  .parse_end
 	call get_char							; get second character if first was control flag
 	test ah,UART_RECV_ERR					; return line status bits if error
-	jnz  parse_err
+	jnz  .parse_err
 	cmp  al,PF_CID							; return PACKET_FLAG if PF_CID
-	je   parse_pf_cid
+	je   .parse_pf_cid
 	cmp  al,CF_CID							; return CONTROL_FLAG if CF_CID
-	je   parse_cf_cid
-	parse_null:								; return null
+	je   .parse_cf_cid
+	.parse_null:								; return null
 		xor  ah,ah							; no error, no character
-		jmp  parse_end
-	parse_pf_cid:
+		jmp  .parse_end
+	.parse_pf_cid:
 		mov  al,PACKET_FLAG					; return PACKET_FLAG
-		jmp  parse_end
-	parse_cf_cid:
+		jmp  .parse_end
+	.parse_cf_cid:
 		mov  al,CONTROL_FLAG				; return CONTROL_FLAG
-		jmp  parse_end
-	parse_err:
+		jmp  .parse_end
+	.parse_err:
 		and ah,UART_RECV_ERR				; error, no character (may not be necessary)
-	parse_end:
+	.parse_end:
 		ret
-
-buffer:
-
-main:
-	cli										; disable interrupts
-
-	mov  ax,cs								; set segment registers
-	mov  ds,ax
-	mov  es,ax
-	mov  ss,ax
-
-	mov  bp,code_reloc						; set up stack
-	mov  sp,code_reloc
-
-	sti										; enable interrupts
-											; initialise the serial port
+main:										; initialise the serial port
 	mov  dx,UART_BASEADDR+3					; set divisor latch access bit
 	mov  al,UART_DLAB
 	out  dx,al
@@ -145,19 +90,61 @@ main:
 	mov  dx,UART_BASEADDR+4					; clear loopback
 	xor  ax,ax
 	out  dx,al
-
-	mov  si,find_packet
-	mov  di,code_reloc
-	mov  cx,code_size
-
-	relocate:								; relocate main loop
-		lodsb
-		stosb
-		loop relocate
 											; read and execute sequences of instructions from serial port
-	jmp  code_reloc
+	.find_packet:
+		call get_char						; expecting packet flag
+
+	.test_packet_flag:
+		test ah,UART_RECV_ERR
+		jnz  .find_packet
+
+		cmp  al,PACKET_FLAG
+		jne  .find_packet
+
+		call parse_char						; read length (2 bytes, little endian)
+		test ah,UART_CHAR_RECV
+		jz   .test_packet_flag
+		mov  cl,al
+
+		call parse_char
+		test ah,UART_CHAR_RECV
+		jz   .test_packet_flag
+		mov  ch,al
+
+		xor  dx,dx							; checksum (sum over buffer % 256)
+		mov  di,buffer						; offset of buffer
+
+		.recv_loop:							; read bytes
+			call parse_char
+			test ah,UART_CHAR_RECV
+			jz   .test_packet_flag
+
+			stosb
+
+			and  ah,0						; accumulate checksum
+			add  dx,ax
+			and  dh,0
+
+			loop .recv_loop
+
+		call parse_char						; read and compare checksum
+		test ah,UART_CHAR_RECV
+		jz   .test_packet_flag
+		cmp  al,dl
+		jne  .find_packet
+
+		call get_char						; expecting packet flag
+		test ah,UART_RECV_ERR
+		jnz  .find_packet
+		cmp  al,PACKET_FLAG
+		jne  .find_packet
+
+		call buffer							; run code in buffer
+		jmp  .find_packet					; look for more instructions
+
 
 filler:
 	times 510 - ($-$$) db 0
 	db 0x55, 0xaa							; boot sector magic number
 
+buffer:
