@@ -7,6 +7,7 @@ import java.awt.*;
 public class SerialView extends JPanel{
 	private JTextArea out, in;
 	private SerialControl control;
+	private SerialListener listener;
 
 	public SerialView(SerialControl control){
 		GridBagLayout gridbag = new GridBagLayout();
@@ -14,7 +15,7 @@ public class SerialView extends JPanel{
 		setLayout(gridbag);
 
 		this.control = control;
-		control.addListener(new SerialListener(){
+		this.listener = new SerialListener(){
 			public void bytesReceived(final byte[] bytes, final int length){
 				SwingUtilities.invokeLater(new Runnable(){
 					public void run(){
@@ -22,7 +23,8 @@ public class SerialView extends JPanel{
 					}
 				});
 			}
-		});
+		};
+		control.addListener(listener);
 
 		constraints.fill = GridBagConstraints.BOTH;
 		constraints.weightx = 1;
