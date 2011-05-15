@@ -36,7 +36,13 @@ public class SerialControl{
 	}
 
 	public void removeListener(SerialListener l){
-		listeners.remove(l);
+		Iterator<WeakReference<SerialListener>> i = listeners.iterator();
+		while(i.hasNext()){
+			SerialListener current = i.next().get();
+			if(current == null || current == l){
+				i.remove();
+			}
+		}
 	}
 
 	public void connect(String portName)
@@ -82,7 +88,6 @@ public class SerialControl{
 		}).start();
 	}
 
-	/** */
 	public class SerialReader implements Runnable {
 		InputStream in;
 
@@ -91,12 +96,15 @@ public class SerialControl{
 		}
 
 		public void run (){
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[256];
 			int len = -1;
 			try{
 				while ( ( len = this.in.read(buffer)) > -1 ){
-					if(len > 0)
-						notifyListeners(buffer, len);
+					if(len > 0){
+						byte[] bytes = buffer;
+						buffer = new byte[256];
+						notifyListeners(bytes, len);
+					}
 				}
 			}
 			catch ( IOException e ){
