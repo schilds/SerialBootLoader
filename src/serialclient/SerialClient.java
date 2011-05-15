@@ -12,13 +12,13 @@ public class SerialClient extends JFrame{
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
-        setMinimumSize(new Dimension(500, 300));
+		setMinimumSize(new Dimension(500, 300));
 
 
-        JTabbedPane tabbed_pane = new JTabbedPane();
-        add(tabbed_pane);
+		JTabbedPane tabbed_pane = new JTabbedPane();
+		add(tabbed_pane);
 
-        tabbed_pane.addTab("serial i/o", new SerialView(serial_control));
+		tabbed_pane.addTab("serial i/o", new SerialView(serial_control));
 	}
 
 	public static void main(String[] args){

@@ -25,13 +25,13 @@ public class SerialControl{
 	private byte[] bytes;
 	private SerialPort port;
 
-    public SerialControl(){
-        listeners = new LinkedList<WeakReference<SerialListener>>();
-        bytes = null;
-        port = null;
-    }
+	public SerialControl(){
+		listeners = new LinkedList<WeakReference<SerialListener>>();
+		bytes = null;
+		port = null;
+	}
 
-    public void addListener(SerialListener l){
+	public void addListener(SerialListener l){
 		listeners.add(new WeakReference<SerialListener>(l));
 	}
 
@@ -39,28 +39,28 @@ public class SerialControl{
 		listeners.remove(l);
 	}
 
-    public void connect(String portName)
-    throws Exception {
-        CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
-        if ( portIdentifier.isCurrentlyOwned() ){
-            System.out.println("Error: Port is currently in use");
-        }
-        else{
-            CommPort commPort = portIdentifier.open(this.getClass().getName(),2000);
+	public void connect(String portName)
+	throws Exception {
+		CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
+		if ( portIdentifier.isCurrentlyOwned() ){
+			System.out.println("Error: Port is currently in use");
+		}
+		else{
+			CommPort commPort = portIdentifier.open(this.getClass().getName(),2000);
 
-            if ( commPort instanceof SerialPort ){
-                port = (SerialPort) commPort;
-                port.setSerialPortParams(BAUD, DATABITS, STOPBITS, PARITY);
-                port.setFlowControlMode(FLOW_CTRL);
+			if ( commPort instanceof SerialPort ){
+				port = (SerialPort) commPort;
+				port.setSerialPortParams(BAUD, DATABITS, STOPBITS, PARITY);
+				port.setFlowControlMode(FLOW_CTRL);
 
-                new Thread(new SerialReader(port.getInputStream())).start();
+				new Thread(new SerialReader(port.getInputStream())).start();
 
-            }
-            else{
-                System.out.println("Error: Only serial ports are handled by this example.");
-            }
-        }
-    }
+			}
+			else{
+				System.out.println("Error: Only serial ports are handled by this example.");
+			}
+		}
+	}
 
 	public synchronized void send(byte[] bytes)
 	throws SerialException {
@@ -82,30 +82,28 @@ public class SerialControl{
 		}).start();
 	}
 
-    /** */
-    public class SerialReader implements Runnable {
-        InputStream in;
+	/** */
+	public class SerialReader implements Runnable {
+		InputStream in;
 
-        public SerialReader ( InputStream in )
-        {
-            this.in = in;
-        }
+		public SerialReader ( InputStream in ){
+			this.in = in;
+		}
 
-        public void run ()
-        {
-            byte[] buffer = new byte[1024];
-            int len = -1;
-            try{
-                while ( ( len = this.in.read(buffer)) > -1 ){
+		public void run (){
+			byte[] buffer = new byte[1024];
+			int len = -1;
+			try{
+				while ( ( len = this.in.read(buffer)) > -1 ){
 					if(len > 0)
 						notifyListeners(buffer, len);
-                }
-            }
-            catch ( IOException e ){
-                e.printStackTrace();
-            }
-        }
-    }
+				}
+			}
+			catch ( IOException e ){
+				e.printStackTrace();
+			}
+		}
+	}
 
 	private void notifyListeners(byte[] bytes, int length){
 		Iterator<WeakReference<SerialListener>> i = listeners.iterator();
