@@ -148,4 +148,4 @@ filler:
     times 510 - ($-$$) db 0
     db 0x55, 0xaa                           ; boot sector magic number
 
-buffer:
+buffer:                                     ; this should be at 0x7c00 when relocated
