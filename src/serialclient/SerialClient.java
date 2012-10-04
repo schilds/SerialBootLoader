@@ -2,6 +2,7 @@ package serialclient;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 
 public class SerialClient extends JFrame{
 
@@ -26,7 +27,7 @@ public class SerialClient extends JFrame{
 			public void run(){
 				try{
 					SerialClient client = new SerialClient();
-					client.serial_control.connect("COM1");
+					client.serial_control.connect(getCOMPort("port.txt"));
 					client.setVisible(true);
 				}
 				catch(Exception e){
@@ -34,5 +35,10 @@ public class SerialClient extends JFrame{
 				}
 			}
 		});
+	}
+
+	private static String getCOMPort(String file)
+	throws IOException{
+		return (new BufferedReader(new FileReader(file))).readLine();
 	}
 }
