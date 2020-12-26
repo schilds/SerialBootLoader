@@ -45,7 +45,7 @@ document.getElementById('connect').addEventListener('click', () => {
 });
 
 document.getElementById('send').addEventListener('click', () => {
-	sendSerial(hexStringToBytes(stripComments(document.getElementById('input').value)));
+	sendSerial(createPacket(hexStringToBytes(stripComments(document.getElementById('input').value))));
 });
 
 async function connectSerial() {
@@ -58,14 +58,60 @@ async function connectSerial() {
 			parity: 'even',
 			flowControl: 'none'
 		});
-		document.getElementById('output').value = 'Connected.';
+		document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
+		document.getElementById('output').value = 'Connected.\n';
+		setTimeout(() => {readSerial();}, 100);
 	}
 	catch(e) {
 		document.getElementById('output').value = e;
 	}
 }
 
+async function readSerial() {
+	if(port.readable) {
+		const reader = port.readable.getReader();
+		try {
+			while(true) {
+				const { value, done } = await reader.read();
+				if(done) {
+					break;
+				}
+				console.log('response', value);
+				document.getElementById('output').value += "\n" + bytesToHexString(value);
+			}
+			setTimeout(() => {readSerial();}, 100);
+		}
+		catch(e) {
+			document.getElementById('output').value = e;
+		}
+		finally {
+			reader.releaseLock();
+		}
+	}
+	else {
+		document.getElementById('output').value = "Port not readable.\n";
+	}
+}
+
 async function sendSerial(data) {
+	if(port.writable) {
+	const writer = port.writable.getWriter();
+		try {
+			await writer.write(data);
+		}
+		catch(e) {
+			document.getElementById('output').value = e;
+		}
+		finally {
+			writer.releaseLock();
+		}
+	}
+	else {
+		document.getElementById('output').value = "Port not writable.\n";
+	}
+}
+
+function createPacket(data) {
 	var buffer_length = 2;
 	var checksum = 0;
 	var data_length1 = data.length;
@@ -96,9 +142,7 @@ async function sendSerial(data) {
 	console.log('checksum', checksum);
 	console.log('packet', buffer);
 
-	const writer = port.writable.getWriter();
-	await writer.write(buffer);
-	writer.releaseLock();
+	return buffer;
 }
 
 function escapedLength(byte) {
