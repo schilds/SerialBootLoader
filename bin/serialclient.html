@@ -95,7 +95,7 @@ async function readSerial() {
 
 async function sendSerial(data) {
 	if(port.writable) {
-	const writer = port.writable.getWriter();
+		const writer = port.writable.getWriter();
 		try {
 			await writer.write(data);
 		}
