@@ -4,7 +4,7 @@ The java client (was last worked on a decade ago) requires the rxtx library, see
 Material
 - A usb flash drive.
 - Device 1 (for experimenting on): a device with a native serial port and usb port.
-- Device 2 (for developing on): a device with serial and usb ports, running Chrome with experimental features enabled.
+- Device 2 (for developing on): a device with serial or usb ports, running Chrome with experimental features enabled.
 - A serial cable (or usb to serial, or similar).
 
 Instructions
