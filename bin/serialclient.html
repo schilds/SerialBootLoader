@@ -1,0 +1,147 @@
+<html>
+<head>
+	<style>
+		#serial_supported {
+			display: none;
+		}
+
+		#serial_unsupported {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+<button id='connect'>Connect</button><br>
+<br>
+<div id='serial_unsupported'>Serial not supported</div>
+<div id='serial_supported'>
+Input: <br>
+<textarea id='input' rows='20' cols='100'></textarea><br>
+<br>
+Output: <br>
+<textarea id='output' rows='20' cols='100' readonly></textarea><br>
+<br>
+<button id='send'>Send</button>
+</div>
+
+</body>
+<script>
+
+const PACKET_FLAG = 0x7e;
+const CONTROL_FLAG = 0x7d;
+const PF_CID = 0x5e;
+const CF_CID = 0x5d;
+
+var port;
+
+document.getElementById('connect').addEventListener('click', () => {
+	if('serial' in navigator) {
+		document.getElementById('serial_supported').style.display = 'block';
+		connectSerial();
+	}
+	else {
+		document.getElementById('serial_unsupported').style.display = 'block';
+	}
+});
+
+document.getElementById('send').addEventListener('click', () => {
+	sendSerial(hexStringToBytes(document.getElementById('input').value));
+});
+
+async function connectSerial() {
+	try {
+		port = await navigator.serial.requestPort();
+		await port.open({
+			baudRate: 115200,
+			dataBits: 8,
+			stopBits: 1,
+			parity: 'even',
+			flowControl: 'none'
+		});
+		document.getElementById('output').value = 'Connected.';
+	}
+	catch(e) {
+		document.getElementById('output').value = e;
+	}
+}
+
+async function sendSerial(data) {
+	var buffer_length = 2;
+	var checksum = 0;
+	var data_length1 = data.length;
+	var data_length2 = data.length >> 8;
+
+	for(i = 0; i < data.length; ++i) {
+		checksum += data[i];
+		buffer_length += escapedLength(data[i]);
+	}
+	checksum %= 256;
+
+	buffer_length += escapedLength(checksum);
+	buffer_length += escapedLength(data_length1);
+	buffer_length += escapedLength(data_length2);
+
+	const buffer = new Uint8Array(buffer_length);
+	var i = 0;
+	buffer[i] = PACKET_FLAG;
+	i = append(buffer, i, data_length1);
+	i = append(buffer, i, data_length2);
+	for(j = 0; j < data.length; ++j) {
+		i = append(buffer, i, data[j]);
+	}
+	i = append(buffer, i, checksum);
+	buffer[++i] = PACKET_FLAG;
+
+	console.log(bytesToHexString(data));
+	console.log(data);
+	console.log(checksum);
+	console.log(buffer);
+
+	const writer = port.writable.getWriter();
+	await writer.write(buffer);
+	writer.releaseLock();
+}
+
+function escapedLength(byte) {
+	if(byte == PACKET_FLAG || byte == CONTROL_FLAG) return 2;
+	return 1;
+}
+
+function append(buffer, offset, byte) {
+	if(byte == PACKET_FLAG) {
+		buffer[++offset] = CONTROL_FLAG;
+		buffer[++offset] = PF_CID;
+	}
+	else if(byte == CONTROL_FLAG) {
+		buffer[++offset] = CONTROL_FLAG;
+		buffer[++offset] = CF_CID;
+	}
+	else {
+		buffer[++offset] = byte;
+	}
+	return offset;
+}
+
+function hexStringToBytes(string) {
+	string = string.replace(/\s/g, '');
+	if(string.length % 2 != 0)
+		string += '0';
+	var data = new Array(string.length / 2);
+	for (i = 0; i < string.length; i += 2) {
+		data[i / 2] = (parseInt(string.charAt(i), 16) << 4) + parseInt(string.charAt(i + 1), 16);
+	}
+	return data;
+}
+
+function bytesToHexString(bytes) {
+	const hex_array = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+	var hex_chars = new Array(bytes.length * 2);
+	for(j = 0; j < bytes.length; ++j) {
+		var v = bytes[j] & 0xFF;
+		hex_chars[j * 2] = hex_array[Math.floor(v/16)];
+		hex_chars[j * 2 + 1] = hex_array[v % 16];
+	}
+	return hex_chars.join('');
+}
+</script>
+</html>
