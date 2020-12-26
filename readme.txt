@@ -19,4 +19,4 @@ Instructions
 Notes
 - The bootloader polls the serial port in an infinite (and excessively) busy loop (unless the code transferred through the serial port does not return control to the bootloader).
 - The serial packet format was shamelessly copied from somewhere else (now forgotten) and does some kind of minimal checking (not to make sure its valid x86, just to make sure its transferred ok).
-- This takes machine instructions (not even assembly). The client accepts hex. The html client accepts comments (the java client does not).
+- This takes machine instructions (not even assembly). It's up to the user to make sure its valid. The client accepts hex. The html client accepts comments (the java client does not).
