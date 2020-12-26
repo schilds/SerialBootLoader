@@ -45,7 +45,7 @@ document.getElementById('connect').addEventListener('click', () => {
 });
 
 document.getElementById('send').addEventListener('click', () => {
-	sendSerial(hexStringToBytes(document.getElementById('input').value));
+	sendSerial(hexStringToBytes(stripComments(document.getElementById('input').value)));
 });
 
 async function connectSerial() {
@@ -92,10 +92,9 @@ async function sendSerial(data) {
 	i = append(buffer, i, checksum);
 	buffer[++i] = PACKET_FLAG;
 
-	console.log(bytesToHexString(data));
-	console.log(data);
-	console.log(checksum);
-	console.log(buffer);
+	console.log('data', data);
+	console.log('checksum', checksum);
+	console.log('packet', buffer);
 
 	const writer = port.writable.getWriter();
 	await writer.write(buffer);
@@ -120,6 +119,12 @@ function append(buffer, offset, byte) {
 		buffer[++offset] = byte;
 	}
 	return offset;
+}
+
+function stripComments(string) {
+	var stripped = string.replace(/;.*/g, '');
+	console.log('without comments:', stripped);
+	return stripped;
 }
 
 function hexStringToBytes(string) {
