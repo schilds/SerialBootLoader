@@ -1,3 +1,5 @@
+USE AT YOUR OWN RISK. This does not protect you in any way from exploding your computer.
+
 The html client requires the serial api, see https://web.dev/serial/ (this feature may only be temporarily available)
 The java client (was last worked on a decade ago) requires the rxtx library, see http://rxtx.qbang.org/wiki/ (apparently down?)
 
