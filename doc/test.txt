@@ -1,14 +1,14 @@
-; protected mode, 16 bit
+; assume protected mode, 16 bit
 ; set video mode to text, 80x25, b&w -> interrupt 10 (code 00, mode 7)
-b8 07 00 cd 10		; mov eax 0007
+b8 07 00 cd 10		; mov eax 0007, int 10
 
 ; set page to 0, cursor to 0 0 -> interrupt 10 (code 02)
 bb 00 00		; mov ebx 0000
 ba 00 00		; mov edx 0000
-b8 00 02 cd 10		; mov eax 0200
+b8 00 02 cd 10		; mov eax 0200, int 10
 
 ; print Hello World!
-b8 48 0e cd 10 		; mov eax 0e48 -> interrupt 10 (code 0e, ascii 48 = H)
+b8 48 0e cd 10 		; mov eax 0e48, int 10 <- interrupt 10 (code 0e, ascii 48 = H)
 b8 65 0e cd 10		; etc
 b8 6c 0e cd 10 
 b8 6c 0e cd 10 
