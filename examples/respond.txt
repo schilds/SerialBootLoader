@@ -1,4 +1,4 @@
 ba f8 03		; mov dx 03f8 = uart_addr
-b8 48 48		; mov eax 4848 = ascii H
+b8 48 48		; mov eax 4848 = some byte
 ee 			; out al, dx
 c3			; return
