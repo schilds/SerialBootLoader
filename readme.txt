@@ -11,7 +11,7 @@ Instructions
 1. Create a bootable usb from bin/loader.bin (e.g. see https://rufus.ie/).
 2. Connect Device 1 and Device 2 with the serial cable.
 3. Boot Device 1 from the usb.
-4. Enable experimental features on Chrome on Device 2 (e.g. see https://web.dev/serial/).
+4. Enable experimental features for Chrome on Device 2 (e.g. see https://web.dev/serial/).
 5. Open bin/serialclient.html in Chrome on Device 2.
 6. Press connect and select an appropriate COM port.
 7. Copy and paste the example from doc/test.txt into the input box and press send.
