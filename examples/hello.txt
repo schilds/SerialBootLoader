@@ -1,4 +1,4 @@
-; assume protected mode, 16 bit, using bios interrupts
+; assume 16 bit real mode, using bios interrupts
 ; set video mode to text, 80x25, b&w -> interrupt 10 (code 00, mode 7)
 b8 07 00 cd 10		; mov eax 0007, int 10
 
