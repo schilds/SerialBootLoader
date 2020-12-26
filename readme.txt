@@ -16,7 +16,7 @@ Instructions
 4. Enable experimental features for Chrome on Device 2 (e.g. see https://web.dev/serial/).
 5. Open bin/serialclient.html in Chrome on Device 2.
 6. Press connect and select an appropriate COM port.
-7. Copy and paste the example from doc/test.txt into the input box and press send.
+7. Copy and paste the contents of examples/hello.txt into the input box and press send.
 
 Notes
 - The bootloader polls the serial port in an infinite (and excessively) busy loop (unless the code transferred through the serial port does not return control to the bootloader). It will get your cpu's fan going, if nothing else.
