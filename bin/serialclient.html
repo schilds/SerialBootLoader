@@ -11,17 +11,15 @@
 	</style>
 </head>
 <body>
-<button id='connect'>Connect</button><br>
-<br>
 <div id='serial_unsupported'>Serial not supported</div>
 <div id='serial_supported'>
-Input: <br>
-<textarea id='input' rows='20' cols='100'></textarea><br>
-<br>
-Output: <br>
-<textarea id='output' rows='20' cols='100' readonly></textarea><br>
-<br>
-<button id='send'>Send</button>
+	<button id='connect'>Connect</button> <button id='send'>Send</button> <input id='load' type='file' /> <br>
+	<br>
+	Input<br>
+	<textarea id='input' rows='20' cols='100'>c3 ; return to reading data from serial port</textarea><br>
+	<br>
+	Output<br>
+	<textarea id='output' rows='20' cols='100' readonly></textarea><br>
 </div>
 
 </body>
@@ -32,20 +30,60 @@ const CONTROL_FLAG = 0x7d;
 const PF_CID = 0x5e;
 const CF_CID = 0x5d;
 
-var port;
+let port;
+let reader;
 
-document.getElementById('connect').addEventListener('click', () => {
-	if('serial' in navigator) {
-		document.getElementById('serial_supported').style.display = 'block';
-		connectSerial();
+if('serial' in navigator) {
+	document.getElementById('send').disabled = true;
+	document.getElementById('serial_supported').style.display = 'block';
+	document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
+}
+else {
+	document.getElementById('serial_unsupported').style.display = 'block';
+}
+
+document.getElementById('connect').addEventListener('click', async () => {
+	document.getElementById('connect').disabled = true;
+	if(document.getElementById('connect').innerHTML == 'Connect') {
+		await connectSerial();
+		if(!(port.readable && port.writable)) {
+			await port.close();
+			document.getElementById('output').value = 'Port i/o unavailable\n';
+		}
+		else {
+			document.getElementById('connect').innerHTML = 'Disconnect';
+			document.getElementById('output').value = 'Connected.\n';
+			document.getElementById('connect').disabled = false;
+			document.getElementById('send').disabled = false;
+			reader = port.readable.getReader();
+			await readSerial();
+			await port.close();
+			document.getElementById('output').value += '\nDisconnected.\n';
+		}
 	}
 	else {
-		document.getElementById('serial_unsupported').style.display = 'block';
+		reader.cancel();
+		document.getElementById('connect').innerHTML = 'Connect';
+		document.getElementById('connect').disabled = false;
+		document.getElementById('send').disabled = true;
 	}
 });
 
 document.getElementById('send').addEventListener('click', () => {
-	sendSerial(createPacket(hexStringToBytes(stripComments(document.getElementById('input').value))));
+	try {
+		sendSerial(createPacket(hexStringToBytes(stripComments(document.getElementById('input').value))));
+	}
+	catch(e) {
+		document.getElementById('output').value = e;
+	}
+});
+
+document.getElementById('load').addEventListener('change', () => {
+	const reader = new FileReader();
+	reader.addEventListener('load', (event) => {
+		document.getElementById('input').value = event.target.result;
+	});
+	reader.readAsText(document.getElementById('load').files[0]);
 });
 
 async function connectSerial() {
@@ -58,9 +96,6 @@ async function connectSerial() {
 			parity: 'even',
 			flowControl: 'none'
 		});
-		document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
-		document.getElementById('output').value = 'Connected.\n';
-		setTimeout(() => {readSerial();}, 100);
 	}
 	catch(e) {
 		document.getElementById('output').value = e;
@@ -68,47 +103,34 @@ async function connectSerial() {
 }
 
 async function readSerial() {
-	if(port.readable) {
-		const reader = port.readable.getReader();
-		try {
-			document.getElementById('output').value += "\n";
-			while(true) {
-				const { value, done } = await reader.read();
-				if(done) {
-					break;
-				}
-				console.log('response', value);
-				document.getElementById('output').value += bytesToHexString(value);
+	try {
+		while(true) {
+			const { value, done } = await reader.read();
+			if(done) {
+				break;
 			}
-			setTimeout(() => {readSerial();}, 100);
-		}
-		catch(e) {
-			document.getElementById('output').value = e;
-		}
-		finally {
-			reader.releaseLock();
+			console.log('response', value);
+			document.getElementById('output').value += bytesToHexString(value);
 		}
 	}
-	else {
-		document.getElementById('output').value = "Port not readable.\n";
+	catch(e) {
+		document.getElementById('output').value = e;
+	}
+	finally {
+		reader.releaseLock();
 	}
 }
 
 async function sendSerial(data) {
-	if(port.writable) {
-		const writer = port.writable.getWriter();
-		try {
-			await writer.write(data);
-		}
-		catch(e) {
-			document.getElementById('output').value = e;
-		}
-		finally {
-			writer.releaseLock();
-		}
+	const writer = port.writable.getWriter();
+	try {
+		await writer.write(data);
 	}
-	else {
-		document.getElementById('output').value = "Port not writable.\n";
+	catch(e) {
+		document.getElementById('output').value = e;
+	}
+	finally {
+		writer.releaseLock();
 	}
 }
 
@@ -178,7 +200,10 @@ function hexStringToBytes(string) {
 		string += '0';
 	var data = new Array(string.length / 2);
 	for (i = 0; i < string.length; i += 2) {
-		data[i / 2] = (parseInt(string.charAt(i), 16) << 4) + parseInt(string.charAt(i + 1), 16);
+		data[i/2] = (parseInt(string.charAt(i), 16) << 4) + parseInt(string.charAt(i + 1), 16);
+		if(isNaN(data[i/2])) {
+			throw 'Data is not hexadecimal.';
+		}
 	}
 	return data;
 }
