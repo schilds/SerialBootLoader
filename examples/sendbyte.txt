@@ -1,4 +1,14 @@
-ba f8 03		; mov dx 03f8 = uart_addr
-b8 48 48		; mov eax 4848 = some byte
-ee 			; out al, dx
+; need to wait while transmit buffer not empty
+ba fd 03		; mov dx 03fd 		-> dx = uart_addr + 5
+
+; start of busy loop
+ec			; in dx, al 		-> read contents of uart_addr + 5 into al
+25 20 00		; and 0x20, ax 		-> test transmit status bits
+74 fa			; je 			-> jump back to start of loop if not empty
+
+; transmit some byte
+ba f8 03		; mov dx 03f8 		-> dx = uart_addr
+b8 48 00		; mov eax 48 		-> al = 48
+ee 			; out al, dx 		-> write al to dx
+
 c3			; return

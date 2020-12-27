@@ -2,7 +2,7 @@
 %define UART_BAUDRATE  0x1                  ; 115200 (port+0,1)
 %define UART_LCRVAL    0x1b                 ; 8e1 (port+3)
 %define UART_DLAB      0x80                 ; divisor latch access bit (port+3)
-%define UART_RECV_STAT 0x9f                 ; receive line status bits(port+5)
+%define UART_RECV_STAT 0x9f                 ; receive line status bits (port+5)
 %define UART_CHAR_RECV 0x01                 ; character received bit
 %define UART_RECV_ERR  0x9e                 ; receive line status error bits
 
