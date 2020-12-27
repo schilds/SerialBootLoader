@@ -80,10 +80,18 @@ document.getElementById('send').addEventListener('click', () => {
 
 document.getElementById('load').addEventListener('change', () => {
 	const reader = new FileReader();
-	reader.addEventListener('load', (event) => {
-		document.getElementById('input').value = event.target.result;
-	});
-	reader.readAsText(document.getElementById('load').files[0]);
+	if(document.getElementById('load').value.endsWith(".txt")) {
+		reader.addEventListener('load', (event) => {
+			document.getElementById('input').value = event.target.result;
+		});
+		reader.readAsText(document.getElementById('load').files[0]);
+	}
+	else {
+		reader.addEventListener('load', (event) => {
+			document.getElementById('input').value = '; blob converted to hex\n' + bytesToHexString(new Uint8Array(event.target.result));
+		});
+		reader.readAsArrayBuffer(document.getElementById('load').files[0]);
+	}
 });
 
 async function connectSerial() {
