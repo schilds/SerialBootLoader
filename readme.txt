@@ -2,7 +2,7 @@ USE AT YOUR OWN RISK. This does not protect you in any way from exploding your c
 
 The html client requires the serial api, see https://web.dev/serial/ (this feature may only be temporarily available)
 The java client (was last worked on a decade ago) requires the rxtx library, see http://rxtx.qbang.org/wiki/ (apparently down?)
-The bootloader and provided examples were created for legacy BIOS. They may not transfer as is to UEFI.
+The bootloader and provided examples were created for legacy BIOS. They will not transfer as is to UEFI.
 
 Material
 - A usb flash drive.
