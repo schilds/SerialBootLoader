@@ -2,6 +2,7 @@ USE AT YOUR OWN RISK. This does not protect you in any way from exploding your c
 
 The html client requires the serial api, see https://web.dev/serial/ (this feature may only be temporarily available)
 The java client (was last worked on a decade ago) requires the rxtx library, see http://rxtx.qbang.org/wiki/ (apparently down?)
+The bootloader and provided examples were created for legacy BIOS. They will not transfer as is to UEFI.
 
 Material
 - A usb flash drive.
@@ -22,3 +23,6 @@ Notes
 - The bootloader polls the serial port in an infinite (and excessively) busy loop (unless the code transferred through the serial port does not return control to the bootloader). It will get your cpu's fan going, if nothing else.
 - The serial packet format was shamelessly copied from somewhere else (now forgotten) and does some kind of primitive check to make sure the bytes are transferred ok (not to make sure it is valid x86).
 - The bootloader assumes that it is given executable binary code. It's up to the user to make sure it is valid. The client accepts hexadecimal (the html version also accepts comments, but not the java version).
+
+Todo
+Create a UEFI version.
