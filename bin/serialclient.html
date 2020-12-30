@@ -36,7 +36,6 @@ let reader;
 if('serial' in navigator) {
 	document.getElementById('send').disabled = true;
 	document.getElementById('serial_supported').style.display = 'block';
-	document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
 }
 else {
 	document.getElementById('serial_unsupported').style.display = 'block';
@@ -118,7 +117,8 @@ async function readSerial() {
 				break;
 			}
 			console.log('response', value);
-			document.getElementById('output').value += bytesToHexString(value);
+			document.getElementById('output').value += bytesToHexString(value) + ' ';
+			document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
 		}
 	}
 	catch(e) {
@@ -132,6 +132,7 @@ async function readSerial() {
 async function sendSerial(data) {
 	const writer = port.writable.getWriter();
 	try {
+		document.getElementById('output').value += '\n';
 		await writer.write(data);
 	}
 	catch(e) {
@@ -218,13 +219,12 @@ function hexStringToBytes(string) {
 
 function bytesToHexString(bytes) {
 	const hex_array = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
-	var hex_chars = new Array(bytes.length * 2);
+	var hex_chars = new Array(bytes.length);
 	for(j = 0; j < bytes.length; ++j) {
 		var v = bytes[j] & 0xFF;
-		hex_chars[j * 2] = hex_array[Math.floor(v/16)];
-		hex_chars[j * 2 + 1] = hex_array[v % 16];
+		hex_chars[j] = hex_array[Math.floor(v/16)] + hex_array[v % 16];
 	}
-	return hex_chars.join('');
+	return hex_chars.join(' ');
 }
 </script>
 </html>

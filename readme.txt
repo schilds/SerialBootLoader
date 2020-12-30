@@ -26,5 +26,4 @@ Notes
 
 Todo
 Set up interrupts to handle serial communication.
-Create example that reads and transmits the contents of a block of memory.
 Create a UEFI version.
