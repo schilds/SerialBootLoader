@@ -25,4 +25,6 @@ Notes
 - The bootloader assumes that it is given executable binary code. It's up to the user to make sure it is valid. The client accepts hexadecimal (the html version also accepts comments, but not the java version).
 
 Todo
+Set up interrupts to handle serial communication.
+Create example that reads and transmits the contents of a block of memory.
 Create a UEFI version.
