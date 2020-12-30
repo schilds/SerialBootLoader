@@ -17,7 +17,7 @@ ee			; out al, dx
 
 ; loop until si = 0x1d
 46			; inc si
-81 fe 1d 00		; and si, 0xff
+81 fe 1d 00		; cmp si, 0xff
 72 ea			; je
 
 c3			; return
