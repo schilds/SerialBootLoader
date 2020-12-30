@@ -1,4 +1,4 @@
-; specify start of memory block
+; specify start of memory block, so happens to be the start of this code
 bb 00 7c		; mov bx, 0000
 be 00 00		; mov si, 0000
 
@@ -15,9 +15,9 @@ ba f8 03		; mov dx 03f8 		-> dx = uart_addr
 8a 00			; mov al, [bx+si]
 ee			; out al, dx
 
-; loop until si = 0x1d
+; loop until si = 1d, so happens to be the length of this code
 46			; inc si
-81 fe 1d 00		; cmp si, 0xff
+81 fe 1d 00		; cmp si, 001d
 72 ea			; je
 
 c3			; return
