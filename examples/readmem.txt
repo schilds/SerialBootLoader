@@ -18,6 +18,6 @@ ee			; out al, dx
 ; loop until si = 1d, so happens to be the length of this code
 46			; inc si
 81 fe 1d 00		; cmp si, 001d
-72 ea			; je
+72 ea			; jb
 
 c3			; return
